@@ -3,31 +3,58 @@
 var StringArray = require('./string-array');
 
 class ArrayState {
-  constructor(arr){
+  constructor(arr) {
     const array = arr
         .replace(/\r?\n|\r/g, '')
-        .substring(2);
-    const N = arr.charAt(0);
-    const M = arr.charAt(1);
+        .substring(arr.search(/\r?\n|\r/));
+    const N = arr.substr(0, arr.indexOf(' '));
+    const M = arr.substr(arr.indexOf(' ')+1, arr.search(/\r?\n|\r/)-3);
 
-    this.stringArray = new StringArray(N, M, array);
+    console.log(N, M);
+    this.stringArray = new StringArray(+N, +M, array);
+    this.commands = [];
   }
 
-  run(){
-    console.log(this.stringArray.render());
-    console.log('------');
+  run(cb) {
+    this.recursive(cb);
+  }
+
+  recursive(cb){
     const longer = this.stringArray.getLonger();
+    if(longer.value === 0){
+      return cb();
+    }
     this.generateCommand(longer);
+    this.recursive(cb);
   }
 
-  generateCommand(max){
-    let command = 'PAINT_LINE ';
-    if(max.column){
-      command += `${max.pos.start} ${max.column} ${max.pos.end} ${max.column}`;
+  generateCommand(max) {
+    if(max.type == 'square'){
+      // Square
+      let command = `PAINT_SQUARE ${max.x} ${max.y} ${max.s}`;
+      this.stringArray.remove(command);
+      this.commands.push(command);
     } else {
-      command += `${max.row} ${max.pos.start} ${max.row} ${max.pos.end}`;
+      // Line
+      let command = 'PAINT_LINE ';
+
+      if(typeof max.column !== 'undefined'){
+        command += `${max.pos.start} ${max.column} ${max.pos.end} ${max.column}`;
+      }
+      if(typeof max.row !== 'undefined'){
+        command += `${max.row} ${max.pos.start} ${max.row} ${max.pos.end}`;
+      }
+      this.stringArray.remove(command);
+      this.commands.push(command);
     }
-    this.stringArray.remove(command);
+  }
+
+  getArray() {
+    return this.stringArray.render();
+  }
+
+  listCommand() {
+    return this.commands.join('\n');
   }
 }
 
