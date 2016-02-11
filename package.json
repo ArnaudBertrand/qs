@@ -9,5 +9,6 @@
   "author": "ArnaudBertrand",
   "license": "ISC",
   "devDependencies": {
+    "nodemon": "^1.8.1"
   }
 }

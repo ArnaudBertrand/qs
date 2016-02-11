@@ -1,17 +1,26 @@
 'use strict';
 
-var StringArray = require('./string-array');
+//var StringArray = require('./string-array');
+var ArrayParser = require('./array');
 
 class ArrayState {
   constructor(arr) {
-    const array = arr
-        .replace(/\r?\n|\r/g, '')
-        .substring(arr.search(/\r?\n|\r/));
-    const N = arr.substr(0, arr.indexOf(' '));
-    const M = arr.substr(arr.indexOf(' ')+1, arr.search(/\r?\n|\r/)-3);
+    var array = arr.split(/\r?\n|\r/g);
+    var args = array.shift().split(' ');
+    var N = args[0];
+    var M = args[1];
 
-    console.log(N, M);
-    this.stringArray = new StringArray(+N, +M, array);
+    console.log(N, M, array);
+    // String array
+    //const array = arr
+    //    .replace(/\r?\n|\r/g, '')
+    //    .substring(arr.search(/\r?\n|\r/));
+    //const N = arr.substr(0, arr.indexOf(' '));
+    //const M = arr.substr(arr.indexOf(' ')+1, arr.search(/\r?\n|\r/)-3);
+    //console.log(N, M);
+    //this.stringArray = new StringArray(+N, +M, array);
+
+    this.arrayParser = new ArrayParser(+N, +M, array);
     this.commands = [];
   }
 
@@ -20,7 +29,7 @@ class ArrayState {
   }
 
   recursive(cb){
-    const longer = this.stringArray.getLonger();
+    const longer = this.arrayParser.getLonger();
     if(longer.value === 0){
       return cb();
     }
@@ -32,7 +41,7 @@ class ArrayState {
     if(max.type == 'square'){
       // Square
       let command = `PAINT_SQUARE ${max.x} ${max.y} ${max.s}`;
-      this.stringArray.remove(command);
+      this.arrayParser.remove(command);
       this.commands.push(command);
     } else {
       // Line
@@ -44,13 +53,14 @@ class ArrayState {
       if(typeof max.row !== 'undefined'){
         command += `${max.row} ${max.pos.start} ${max.row} ${max.pos.end}`;
       }
-      this.stringArray.remove(command);
+      this.arrayParser.remove(command);
+      console.log(command);
       this.commands.push(command);
     }
   }
 
   getArray() {
-    return this.stringArray.render();
+    return this.arrayParser.render();
   }
 
   listCommand() {
